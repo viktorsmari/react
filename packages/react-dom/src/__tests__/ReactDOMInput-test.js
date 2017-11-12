@@ -1152,15 +1152,20 @@ describe('ReactDOMInput', () => {
     var originalCreateElement = document.createElement;
     spyOn(document, 'createElement').and.callFake(function(type) {
       var el = originalCreateElement.apply(this, arguments);
+      var value = '';
+
       if (type === 'input') {
         Object.defineProperty(el, 'value', {
-          get: function() {},
-          set: function() {
-            log.push('set value');
+          get: function() {
+            return value;
+          },
+          set: function(val) {
+            value = '' + val;
+            log.push('set property value');
           },
         });
-        spyOn(el, 'setAttribute').and.callFake(function(name, value) {
-          log.push('set ' + name);
+        spyOn(el, 'setAttribute').and.callFake(function(name) {
+          log.push('set attribute ' + name);
         });
       }
       return el;
@@ -1170,14 +1175,14 @@ describe('ReactDOMInput', () => {
       <input value="0" type="range" min="0" max="100" step="1" />,
     );
     expect(log).toEqual([
-      'set type',
-      'set step',
-      'set min',
-      'set max',
-      'set value',
-      'set value',
-      'set checked',
-      'set checked',
+      'set attribute type',
+      'set attribute min',
+      'set attribute max',
+      'set attribute step',
+      'set attribute value',
+      'set property value',
+      'set attribute checked',
+      'set attribute checked',
     ]);
   });
 
@@ -1216,9 +1221,14 @@ describe('ReactDOMInput', () => {
     var originalCreateElement = document.createElement;
     spyOn(document, 'createElement').and.callFake(function(type) {
       var el = originalCreateElement.apply(this, arguments);
+      var value = '';
       if (type === 'input') {
         Object.defineProperty(el, 'value', {
+          get: function() {
+            return value;
+          },
           set: function(val) {
+            value = '' + val;
             log.push(`node.value = ${strify(val)}`);
           },
         });
@@ -1235,8 +1245,7 @@ describe('ReactDOMInput', () => {
     expect(log).toEqual([
       'node.setAttribute("type", "date")',
       'node.setAttribute("value", "1980-01-01")',
-      'node.value = ""',
-      'node.value = ""',
+      'node.value = "1980-01-01"',
       'node.setAttribute("checked", "")',
       'node.setAttribute("checked", "")',
     ]);
@@ -1268,6 +1277,36 @@ describe('ReactDOMInput', () => {
       ReactTestUtils.Simulate.change(node, {target: {value: '2'}});
 
       expect(node.getAttribute('value')).toBe('2');
+    });
+
+    it('initially sets the value attribute on mount', () => {
+      var Input = getTestInput();
+      var stub = ReactTestUtils.renderIntoDocument(
+        <Input type="number" value="1" />,
+      );
+      var node = ReactDOM.findDOMNode(stub);
+
+      expect(node.getAttribute('value')).toBe('1');
+    });
+
+    it('initially sets the value attribute for submit on mount', () => {
+      var Input = getTestInput();
+      var stub = ReactTestUtils.renderIntoDocument(
+        <Input type="submit" value="1" />,
+      );
+      var node = ReactDOM.findDOMNode(stub);
+
+      expect(node.getAttribute('value')).toBe('1');
+    });
+
+    it('initially sets the value attribute for reset on mount', () => {
+      var Input = getTestInput();
+      var stub = ReactTestUtils.renderIntoDocument(
+        <Input type="reset" value="1" />,
+      );
+      var node = ReactDOM.findDOMNode(stub);
+
+      expect(node.getAttribute('value')).toBe('1');
     });
 
     it('does not set the value attribute on number inputs if focused', () => {
