@@ -17,8 +17,10 @@ import {getFiberCurrentPropsFromNode} from './ReactDOMComponentTree';
 import ReactControlledValuePropTypes from '../shared/ReactControlledValuePropTypes';
 
 type InputWithWrapperState = HTMLInputElement & {
+  value: string,
+  defaultValue: string,
   _wrapperState: {
-    initialValue: ?string,
+    initialValue: string,
     initialChecked: ?boolean,
     controlled?: boolean,
   },
@@ -300,7 +302,11 @@ function updateNamedCousins(rootNode, props) {
 // when the user is inputting text
 //
 // https://github.com/facebook/react/issues/7253
-function synchronizeDefaultValue(node: Element, type: ?string, value: string) {
+function synchronizeDefaultValue(
+  node: InputWithWrapperState,
+  type: ?string,
+  value: string,
+) {
   if (
     // Focused number inputs synchronize on blur. See ChangeEventPlugin.js
     (type !== 'number' || node.ownerDocument.activeElement !== node) &&
